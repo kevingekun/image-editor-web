@@ -1,0 +1,5 @@
+{
+  "name": "AI Image Editor",
+  "description": "An application to edit images using AI, powered by a points-based system with Stripe integration.",
+  "requestFramePermissions": []
+}
