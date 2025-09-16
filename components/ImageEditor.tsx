@@ -6,6 +6,7 @@ import { editImage as apiEditImage } from '../services/api';
 import Button from './ui/Button';
 import Card from './ui/Card';
 import Input from './ui/Input';
+import Spinner from './ui/Spinner';
 
 const ImageEditor: React.FC = () => {
   const [prompt, setPrompt] = useState('');
@@ -169,7 +170,11 @@ const ImageEditor: React.FC = () => {
               Download
             </Button>
           </div>
-          {editedImage ? (
+          {isLoading ? (
+            <div className="w-full h-64 bg-gray-700 rounded-lg flex items-center justify-center">
+              <Spinner />
+            </div>
+          ) : editedImage ? (
             <img src={editedImage} alt="Edited" className="rounded-lg w-full h-auto object-cover" />
           ) : (
             <div className="w-full h-64 bg-gray-700 rounded-lg flex items-center justify-center text-gray-400">

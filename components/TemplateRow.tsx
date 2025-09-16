@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -5,15 +6,20 @@ import { editImageByTemplate } from '../services/api';
 import type { PromptTemplate } from '../types';
 import Button from './ui/Button';
 import Card from './ui/Card';
+import Spinner from './ui/Spinner';
 
 interface TemplateRowProps {
   template: PromptTemplate;
 }
 
-const ImagePreview: React.FC<{ src?: string | null, alt: string, label: string }> = ({ src, alt, label }) => (
+const ImagePreview: React.FC<{ src?: string | null, alt: string, label: string, isLoading?: boolean }> = ({ src, alt, label, isLoading = false }) => (
   <div className="flex flex-col items-center space-y-2 w-48 flex-shrink-0">
     <h4 className="text-sm font-semibold text-gray-300 h-5">{label}</h4>
-    {src ? (
+    {isLoading ? (
+      <div className="w-full h-48 bg-gray-700 rounded-lg flex items-center justify-center">
+        <Spinner />
+      </div>
+    ) : src ? (
       <img src={src} alt={alt} className="rounded-lg w-full h-48 object-cover" />
     ) : (
       <div className="w-full h-48 bg-gray-700 rounded-lg flex items-center justify-center text-gray-400 text-sm p-2 text-center">
@@ -157,7 +163,7 @@ const handleDownload = async () => {
             {error && <p className="text-red-400 text-xs text-center mt-1">{error}</p>}
         </div>
 
-        <ImagePreview src={editedUserImage} alt="Your edited photo will appear here" label="Your Result" />
+        <ImagePreview src={editedUserImage} alt="Your edited photo will appear here" label="Your Result" isLoading={isLoading} />
       </div>
     </Card>
   );
