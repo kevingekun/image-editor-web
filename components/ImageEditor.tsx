@@ -73,6 +73,27 @@ const ImageEditor: React.FC = () => {
     }
   };
 
+  const handleDownload = () => {
+    if (!editedImage) return;
+
+    try {
+      const link = document.createElement('a');
+      link.href = editedImage;
+
+      // Extract file extension from URL, handling potential query parameters
+      const extension = editedImage.split('.').pop()?.split('?')[0] || 'png';
+      const fileName = `edited-image-${Date.now()}.${extension}`;
+      link.download = fileName;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      console.error('Download failed:', e);
+      setError('Failed to download image.');
+    }
+  };
+
   const getButtonText = () => {
     if(isLoading) return 'Editing...';
     if(!isAuthenticated) return 'Login to Edit Image';
@@ -137,7 +158,17 @@ const ImageEditor: React.FC = () => {
           )}
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-white mb-2">Edited</h3>
+           <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-semibold text-white">Edited</h3>
+            <Button
+              onClick={handleDownload}
+              disabled={!editedImage || isLoading}
+              variant="secondary"
+              className="py-1 px-3 text-sm"
+            >
+              Download
+            </Button>
+          </div>
           {editedImage ? (
             <img src={editedImage} alt="Edited" className="rounded-lg w-full h-auto object-cover" />
           ) : (
