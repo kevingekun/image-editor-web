@@ -128,3 +128,11 @@ type EditHistoryResponse = {
 export const getImageEditHistory = async (): Promise<EditHistoryResponse> => {
   return apiFetch<EditHistoryResponse>('/users/image-edits?includeResult=true');
 };
+
+// 10. Change User Password
+export const changePassword = async (oldPassword: string, newPassword: string): Promise<{ message: string }> => {
+  return apiFetch<{ message: string }>('/users/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ oldPassword, newPassword }),
+  });
+};

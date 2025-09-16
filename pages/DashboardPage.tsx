@@ -8,8 +8,9 @@ import EditHistory from '../components/EditHistory';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import TemplateEditor from '../components/TemplateEditor';
+import ChangePasswordForm from '../components/ChangePasswordForm';
 
-type Tab = 'editor' | 'orders' | 'edits';
+type Tab = 'editor' | 'orders' | 'edits' | 'profile';
 
 const DashboardPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -17,7 +18,7 @@ const DashboardPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('editor');
 
   useEffect(() => {
-    if (!isAuthenticated && (activeTab === 'orders' || activeTab === 'edits')) {
+    if (!isAuthenticated && (activeTab === 'orders' || activeTab === 'edits' || activeTab === 'profile')) {
         setActiveTab('editor');
     }
   }, [isAuthenticated, activeTab]);
@@ -39,6 +40,8 @@ const DashboardPage: React.FC = () => {
         return isAuthenticated ? <OrderHistory /> : null;
       case 'edits':
         return isAuthenticated ? <EditHistory /> : null;
+      case 'profile':
+        return isAuthenticated ? <ChangePasswordForm /> : null;
       default:
         return null;
     }
@@ -75,6 +78,7 @@ const DashboardPage: React.FC = () => {
             <>
                 <button className={getTabClass('orders')} onClick={() => setActiveTab('orders')}>Order History</button>
                 <button className={getTabClass('edits')} onClick={() => setActiveTab('edits')}>Edit History</button>
+                <button className={getTabClass('profile')} onClick={() => setActiveTab('profile')}>Profile</button>
             </>
           )}
       </div>
