@@ -126,7 +126,7 @@ type EditHistoryResponse = {
     total: number;
 };
 export const getImageEditHistory = async (): Promise<EditHistoryResponse> => {
-  return apiFetch<EditHistoryResponse>('/users/image-edits?includeResult=true');
+  return apiFetch<EditHistoryResponse>('/users/image-edits');
 };
 
 // 10. Change User Password
