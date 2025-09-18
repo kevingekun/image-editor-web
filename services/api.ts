@@ -57,10 +57,10 @@ export const register = async (username: string, password: string): Promise<Auth
 };
 
 // 2. User Login
-export const login = async (username: string, password: string): Promise<AuthResponse> => {
+export const login = async (username: string, password: string, turnstileToken: string): Promise<AuthResponse> => {
   return apiFetch<AuthResponse>('/users/login', {
     method: 'POST',
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, password, turnstileToken }),
   });
 };
 

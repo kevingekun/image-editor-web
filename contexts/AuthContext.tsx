@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import type { User } from '../types';
 import { login as apiLogin, register as apiRegister, getPoints as apiGetPoints } from '../services/api';
@@ -6,7 +5,7 @@ import { login as apiLogin, register as apiRegister, getPoints as apiGetPoints }
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string, turnstileToken: string) => Promise<void>;
   register: (username: string, password: string) => Promise<void>;
   logout: () => void;
   updateUserPoints: (newPoints: number) => void;
@@ -47,8 +46,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchUserData();
   };
 
-  const login = async (username: string, password: string) => {
-    const data = await apiLogin(username, password);
+  const login = async (username: string, password: string, turnstileToken: string) => {
+    const data = await apiLogin(username, password, turnstileToken);
     handleAuthSuccess(data);
   };
 
