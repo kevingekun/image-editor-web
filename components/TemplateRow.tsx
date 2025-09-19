@@ -92,34 +92,11 @@ const TemplateRow: React.FC<TemplateRowProps> = ({ template }) => {
     }
   };
   
-const handleDownload = async () => {
-  if (!editedUserImage) return;
-
-  try {
-    // Create a temporary anchor element
-    const link = document.createElement('a');
-    link.href = editedUserImage;
-    
-    // Extract extension from URL or default to 'png'
-    const extension = editedUserImage.split('.').pop().toLowerCase() || 'png';
-    // Generate safe filename from template type and timestamp
-    const safeFileName = template.templateType.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    const fileName = `${safeFileName}_${Date.now()}.${extension}`;
-    link.download = fileName;
-
-    // Trigger download
-    document.body.appendChild(link);
-    link.click();
-    
-    // Cleanup
-    document.body.removeChild(link);
-    setError(null);
-
-  } catch (e) {
-    console.error('Error downloading image: ', e);
-    setError('An error occurred while preparing the image for download.');
-  }
-};
+  const handlePreview = () => {
+    if (editedUserImage) {
+      window.open(editedUserImage, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   const editedImages = template.imgEdited.split(',').filter(url => url);
 
@@ -156,8 +133,8 @@ const handleDownload = async () => {
                 Edit (1 Point)
             </Button>
             
-            <Button className="w-36 h-10" onClick={handleDownload} disabled={!editedUserImage} variant="secondary">
-                Download
+            <Button className="w-36 h-10" onClick={handlePreview} disabled={!editedUserImage || isLoading} variant="secondary">
+                Preview
             </Button>
 
             {error && <p className="text-red-400 text-xs text-center mt-1">{error}</p>}

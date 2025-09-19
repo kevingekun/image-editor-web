@@ -49,10 +49,10 @@ const apiFetch = async <T>(endpoint: string, options: RequestInit = {}): Promise
 type AuthResponse = { token: string; user: Omit<User, 'points'> };
 
 // 1. User Register
-export const register = async (username: string, password: string): Promise<AuthResponse> => {
+export const register = async (username: string, password: string, turnstileToken: string): Promise<AuthResponse> => {
   return apiFetch<AuthResponse>('/users/register', {
     method: 'POST',
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, password, turnstileToken }),
   });
 };
 
