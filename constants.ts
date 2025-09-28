@@ -57,10 +57,17 @@ export const getMinimumAmount = (currencyCode: string, rates?: Record<string, nu
   return Math.ceil(BASE_PRICE_USD * rate);
 };
 
-// 计算可获得的积分数
+// 计算可获得的积分数 - 支持任意金额（只要不小于5美元）
 export const calculatePoints = (amount: number, currencyCode: string, rates?: Record<string, number>): number => {
   const currentRates = rates || getCurrentRates();
   const rate = currentRates[currencyCode] || 1;
   const usdEquivalent = amount / rate;
+  
+  // 确保不小于最低金额
+  if (usdEquivalent < BASE_PRICE_USD) {
+    return 0;
+  }
+  
+  // 按比例计算积分：每1美元获得2积分（因为$5=10积分）
   return Math.floor((usdEquivalent / BASE_PRICE_USD) * POINTS_PER_BASE_PRICE);
 };

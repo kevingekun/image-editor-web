@@ -92,9 +92,12 @@ export const PurchasePointsForm: React.FC<{setClientSecret: (secret: string) => 
     const selectedCurrency = SUPPORTED_CURRENCIES.find(c => c.code === currency) || SUPPORTED_CURRENCIES[0];
     const minimumAmount = getMinimumAmount(currency, currentRates || undefined);
     
-    // 当货币改变时，自动填入最小金额
+    // 当货币改变时，如果当前金额为空或小于最小金额，则设置为最小金额
     React.useEffect(() => {
-        setAmount(minimumAmount.toString());
+        const numericAmount = parseInt(amount, 10) || 0;
+        if (numericAmount < minimumAmount) {
+            setAmount(minimumAmount.toString());
+        }
     }, [currency, minimumAmount]);
     
     // 计算可获得的积分
@@ -128,7 +131,7 @@ export const PurchasePointsForm: React.FC<{setClientSecret: (secret: string) => 
         <div className="space-y-4">
             <h3 className="text-xl font-bold text-white">Purchase Points</h3>
             <p className="text-gray-400">
-                Base rate: $5 USD = 10 Points. Other currencies calculated at equivalent rates.
+                Rate: $1 USD = 2 Points. Minimum charge: $5 USD equivalent.
             </p>
             
             {/* 汇率更新时间 */}
@@ -165,11 +168,16 @@ export const PurchasePointsForm: React.FC<{setClientSecret: (secret: string) => 
                     id="amount"
                     value={amount}
                     onChange={e => setAmount(e.target.value.replace(/[^0-9]/g, ''))}
-                    placeholder={`Minimum: ${minimumAmount}`}
+                    placeholder={`Enter amount (min: ${minimumAmount})`}
                 />
                 <p className="text-sm text-gray-400 mt-1">
                     Minimum: {selectedCurrency.symbol}{minimumAmount} • 
                     You will get: <span className="font-bold text-indigo-400">{pointsToEarn}</span> points
+                    {numericAmount > 0 && currentRates && (
+                        <span className="text-gray-500 ml-2">
+                            (Rate: {selectedCurrency.symbol}1 = {(2 / (currentRates[currency] || 1)).toFixed(4)} points)
+                        </span>
+                    )}
                 </p>
             </div>
             
