@@ -27,7 +27,7 @@ export const BASE_PRICE_USD = 5; // $5 = 10 points
 export const POINTS_PER_BASE_PRICE = 10;
 
 // 参考汇率（实际应用中应使用实时汇率API）
-// 这些是备用汇率，当API不可用时使用,这是测试时的汇率 a
+// 这些是备用汇率，当API不可用时使用,这是测试时的汇率
 export const FALLBACK_CURRENCY_RATES: Record<string, number> = {
   USD: 1.0,    // 基准货币
   EUR: 0.85,   // 1 USD = 0.85 EUR
