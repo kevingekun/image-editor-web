@@ -34,7 +34,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
   const turnstileContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isRegister || !turnstileContainerRef.current) {
+    if (!turnstileContainerRef.current) {
       return;
     }
 
@@ -113,6 +113,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
     setTurnstileError(null);
     setIsLoading(true);
 
+    if (!turnstileToken) {
+      setError('Please complete the security check.');
+      setIsLoading(false);
+      return;
+    }
+
     if (isRegister) {
       if (!/^[a-zA-Z0-9]+$/.test(username)) {
         setError('Username must contain only letters and numbers.');
@@ -124,21 +130,17 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
         setIsLoading(false);
         return;
       }
-    } else if (!turnstileToken) {
-      setError('Please complete the security check.');
-      setIsLoading(false);
-      return;
     }
 
     try {
       if (isRegister) {
-        await register(username, password);
+        await register(username, password, turnstileToken);
       } else {
         await login(username, password, turnstileToken);
       }
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');
-      if (!isRegister && turnstileWidgetId.current && window.turnstile) {
+      if (turnstileWidgetId.current && window.turnstile) {
         try {
           window.turnstile.reset(turnstileWidgetId.current);
           setTurnstileToken(null);
@@ -174,18 +176,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        {!isRegister && (
-          <div
-            ref={turnstileContainerRef}
-            className="my-4 flex justify-center"
-            aria-label="Security verification"
-          >
-            {turnstileError && <p className="text-red-400 text-sm">{turnstileError}</p>}
-          </div>
-        )}
-        {(error || turnstileError) && (
-          <p className="text-red-400 text-sm">{error || turnstileError}</p>
-        )}
+        <div
+          ref={turnstileContainerRef}
+          className="my-4 flex justify-center"
+          aria-label="Security verification"
+        >
+          {turnstileError && <p className="text-red-400 text-sm">{turnstileError}</p>}
+        </div>
+        {error && <p className="text-red-400 text-sm">{error}</p>}
         <Button type="submit" isLoading={isLoading} className="w-full">
           {isRegister ? 'Register' : 'Login'}
         </Button>
