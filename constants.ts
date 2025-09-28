@@ -27,7 +27,8 @@ export const BASE_PRICE_USD = 5; // $5 = 10 points
 export const POINTS_PER_BASE_PRICE = 10;
 
 // 参考汇率（实际应用中应使用实时汇率API）
-export const CURRENCY_RATES: Record<string, number> = {
+// 这些是备用汇率，当API不可用时使用
+export const FALLBACK_CURRENCY_RATES: Record<string, number> = {
   USD: 1.0,    // 基准货币
   EUR: 0.85,   // 1 USD = 0.85 EUR
   CNY: 7.0,    // 1 USD = 7.0 CNY
@@ -36,15 +37,30 @@ export const CURRENCY_RATES: Record<string, number> = {
   HKD: 7.8,    // 1 USD = 7.8 HKD
 };
 
+// 当前使用的汇率（可以通过API更新）
+let CURRENT_RATES: Record<string, number> = {...FALLBACK_CURRENCY_RATES};
+
+// 更新当前汇率
+export const updateCurrencyRates = (rates: Record<string, number>) => {
+  CURRENT_RATES = { ...rates };
+};
+
+// 获取当前汇率
+export const getCurrentRates = (): Record<string, number> => {
+  return CURRENT_RATES;
+};
+
 // 计算指定货币的最小充值金额（等价于5美元）
-export const getMinimumAmount = (currencyCode: string): number => {
-  const rate = CURRENCY_RATES[currencyCode] || 1;
+export const getMinimumAmount = (currencyCode: string, rates?: Record<string, number>): number => {
+  const currentRates = rates || getCurrentRates();
+  const rate = currentRates[currencyCode] || 1;
   return Math.ceil(BASE_PRICE_USD * rate);
 };
 
 // 计算可获得的积分数
-export const calculatePoints = (amount: number, currencyCode: string): number => {
-  const rate = CURRENCY_RATES[currencyCode] || 1;
+export const calculatePoints = (amount: number, currencyCode: string, rates?: Record<string, number>): number => {
+  const currentRates = rates || getCurrentRates();
+  const rate = currentRates[currencyCode] || 1;
   const usdEquivalent = amount / rate;
   return Math.floor((usdEquivalent / BASE_PRICE_USD) * POINTS_PER_BASE_PRICE);
 };

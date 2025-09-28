@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { createOrder } from '../services/api';
+import { createOrder, getExchangeRates } from '../services/api';
 import Button from './ui/Button';
 import Input from './ui/Input';
-import { SUPPORTED_CURRENCIES, DEFAULT_CURRENCY, Currency, getMinimumAmount, calculatePoints } from '../constants';
+import { SUPPORTED_CURRENCIES, DEFAULT_CURRENCY, Currency, getMinimumAmount, calculatePoints, updateCurrencyRates } from '../constants';
 
 const PaymentComponent: React.FC<{ clientSecret: string; onPaymentSuccess: () => void }> = ({ clientSecret, onPaymentSuccess }) => {
   const stripe = useStripe();
@@ -59,12 +59,38 @@ export const PurchasePointsForm: React.FC<{setClientSecret: (secret: string) => 
     const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [currentRates, setCurrentRates] = useState<Record<string, number> | null>(null);
+    const [lastUpdated, setLastUpdated] = useState<string | null>(null);
     const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
+    // 获取汇率数据
+    useEffect(() => {
+        const fetchExchangeRates = async () => {
+            try {
+                const ratesData = await getExchangeRates();
+                if (ratesData.success && ratesData.rates) {
+                    setCurrentRates(ratesData.rates);
+                    setLastUpdated(ratesData.lastUpdated);
+                    updateCurrencyRates(ratesData.rates);
+                } else {
+                    console.warn('Failed to fetch exchange rates:', ratesData.message);
+                    // 使用默认汇率
+                    setCurrentRates(null);
+                }
+            } catch (error) {
+                console.error('Error fetching exchange rates:', error);
+                // 使用默认汇率
+                setCurrentRates(null);
+            }
+        };
+
+        fetchExchangeRates();
+    }, []);
+
     // 获取当前选中的货币信息
     const selectedCurrency = SUPPORTED_CURRENCIES.find(c => c.code === currency) || SUPPORTED_CURRENCIES[0];
-    const minimumAmount = getMinimumAmount(currency);
+    const minimumAmount = getMinimumAmount(currency, currentRates || undefined);
     
     // 当货币改变时，自动填入最小金额
     React.useEffect(() => {
@@ -73,7 +99,7 @@ export const PurchasePointsForm: React.FC<{setClientSecret: (secret: string) => 
     
     // 计算可获得的积分
     const numericAmount = parseInt(amount, 10) || 0;
-    const pointsToEarn = calculatePoints(numericAmount, currency);
+    const pointsToEarn = calculatePoints(numericAmount, currency, currentRates || undefined);
 
     const handleCreateOrder = async () => {
         if (!isAuthenticated) {
@@ -104,6 +130,13 @@ export const PurchasePointsForm: React.FC<{setClientSecret: (secret: string) => 
             <p className="text-gray-400">
                 Base rate: $5 USD = 10 Points. Other currencies calculated at equivalent rates.
             </p>
+            
+            {/* 汇率更新时间 */}
+            {lastUpdated && (
+                <p className="text-xs text-gray-500">
+                    Exchange rates updated: {new Date(lastUpdated).toLocaleString()}
+                </p>
+            )}
             
             {/* 货币选择 */}
             <div>

@@ -136,3 +136,17 @@ export const changePassword = async (oldPassword: string, newPassword: string): 
     body: JSON.stringify({ oldPassword, newPassword }),
   });
 };
+
+// 11. Get Exchange Rates
+type ExchangeRatesResponse = {
+  baseCurrency: string;
+  rates: Record<string, number>;
+  lastUpdated: string;
+  source: string;
+  success: boolean;
+  message: string;
+};
+
+export const getExchangeRates = async (): Promise<ExchangeRatesResponse> => {
+  return apiFetch<ExchangeRatesResponse>('/exchange-rates');
+};
