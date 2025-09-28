@@ -74,10 +74,10 @@ type CreateOrderResponse = {
     order: { id: number; amount: number; status: string };
     stripe: { client_secret: string };
 };
-export const createOrder = async (amount: number): Promise<CreateOrderResponse> => {
+export const createOrder = async (amount: number, currency: string = 'USD'): Promise<CreateOrderResponse> => {
   return apiFetch<CreateOrderResponse>('/orders', {
     method: 'POST',
-    body: JSON.stringify({ amount }),
+    body: JSON.stringify({ amount, currency }),
   });
 };
 
