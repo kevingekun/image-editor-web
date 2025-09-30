@@ -6,7 +6,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
   login: (username: string, password: string, turnstileToken: string) => Promise<void>;
-  register: (username: string, password: string, turnstileToken: string) => Promise<void>;
+  register: (username: string, password: string, email: string, emailCode: string, turnstileToken: string) => Promise<void>;
   logout: () => void;
   updateUserPoints: (newPoints: number) => void;
   refreshUserPoints: () => Promise<void>;
@@ -51,8 +51,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     handleAuthSuccess(data);
   };
 
-  const register = async (username: string, password: string, turnstileToken: string) => {
-    const data = await apiRegister(username, password, turnstileToken);
+  const register = async (username: string, password: string, email: string, emailCode: string, turnstileToken: string) => {
+    const data = await apiRegister(username, password, email, emailCode, turnstileToken);
     handleAuthSuccess(data);
   };
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { sendEmailCode } from '../services/api';
 import Button from './ui/Button';
 import Input from './ui/Input';
 import Card from './ui/Card';
@@ -25,13 +26,31 @@ interface AuthFormProps {
 const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [emailCode, setEmailCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
+  const [countdown, setCountdown] = useState(0);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileError, setTurnstileError] = useState<string | null>(null);
   const { login, register } = useAuth();
   const turnstileWidgetId = useRef<string | null>(null);
   const turnstileContainerRef = useRef<HTMLDivElement>(null);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (countdown > 0) {
+      countdownRef.current = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+    }
+    return () => {
+      if (countdownRef.current) {
+        clearTimeout(countdownRef.current);
+      }
+    };
+  }, [countdown]);
 
   useEffect(() => {
     if (!turnstileContainerRef.current) {
@@ -107,6 +126,32 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
     };
   }, [isRegister]);
 
+  const handleSendEmailCode = async () => {
+    if (!email) {
+      setError('Please enter your email address first.');
+      return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    
+    setError(null);
+    setIsSendingCode(true);
+    
+    try {
+      await sendEmailCode(email, 'REGISTER');
+      setCountdown(60); // 60秒倒计时
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || 'Failed to send verification code.');
+    } finally {
+      setIsSendingCode(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -130,11 +175,27 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
         setIsLoading(false);
         return;
       }
+      if (!email) {
+        setError('Please enter your email address.');
+        setIsLoading(false);
+        return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        setError('Please enter a valid email address.');
+        setIsLoading(false);
+        return;
+      }
+      if (!emailCode) {
+        setError('Please enter the verification code.');
+        setIsLoading(false);
+        return;
+      }
     }
 
     try {
       if (isRegister) {
-        await register(username, password, turnstileToken);
+        await register(username, password, email, emailCode, turnstileToken);
       } else {
         await login(username, password, turnstileToken);
       }
@@ -176,6 +237,42 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+        {isRegister && (
+          <>
+            <Input
+              id="email"
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <div className="space-y-2">
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <Input
+                    id="emailCode"
+                    label="Verification Code"
+                    type="text"
+                    value={emailCode}
+                    onChange={(e) => setEmailCode(e.target.value)}
+                    placeholder="Enter verification code"
+                    required
+                  />
+                </div>
+                <Button
+                  type="button"
+                  onClick={handleSendEmailCode}
+                  disabled={!email || isSendingCode || countdown > 0}
+                  isLoading={isSendingCode}
+                  className="h-12 px-4 text-sm whitespace-nowrap mb-0"
+                >
+                  {countdown > 0 ? `${countdown}s` : 'Send Code'}
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
         <div
           ref={turnstileContainerRef}
           className="my-4 flex justify-center"

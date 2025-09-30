@@ -48,15 +48,23 @@ const apiFetch = async <T>(endpoint: string, options: RequestInit = {}): Promise
 
 type AuthResponse = { token: string; user: Omit<User, 'points'> };
 
-// 1. User Register
-export const register = async (username: string, password: string, turnstileToken: string): Promise<AuthResponse> => {
-  return apiFetch<AuthResponse>('/users/register', {
+// 1. Send Email Verification Code
+export const sendEmailCode = async (email: string, type: 'REGISTER' = 'REGISTER'): Promise<{ message: string }> => {
+  return apiFetch<{ message: string }>('/email/send-code', {
     method: 'POST',
-    body: JSON.stringify({ username, password, turnstileToken }),
+    body: JSON.stringify({ email, type }),
   });
 };
 
-// 2. User Login
+// 2. User Register
+export const register = async (username: string, password: string, email: string, emailCode: string, turnstileToken: string): Promise<AuthResponse> => {
+  return apiFetch<AuthResponse>('/users/register', {
+    method: 'POST',
+    body: JSON.stringify({ username, password, email, emailCode, turnstileToken }),
+  });
+};
+
+// 3. User Login
 export const login = async (username: string, password: string, turnstileToken: string): Promise<AuthResponse> => {
   return apiFetch<AuthResponse>('/users/login', {
     method: 'POST',
@@ -64,12 +72,12 @@ export const login = async (username: string, password: string, turnstileToken: 
   });
 };
 
-// 3. Get User Points
+// 4. Get User Points
 export const getPoints = async (): Promise<{ points: number }> => {
   return apiFetch<{ points: number }>('/users/points');
 };
 
-// 4. Create Payment Order
+// 5. Create Payment Order
 type CreateOrderResponse = {
     order: { id: number; amount: number; status: string };
     stripe: { client_secret: string };
@@ -81,7 +89,7 @@ export const createOrder = async (amount: number, currency: string = 'USD'): Pro
   });
 };
 
-// 5. Get prompt templates
+// 6. Get prompt templates
 type PromptTemplatesResponse = {
     templates: PromptTemplate[];
     total: number;
@@ -90,7 +98,7 @@ export const getPromptTemplates = async (): Promise<PromptTemplatesResponse> => 
     return apiFetch<PromptTemplatesResponse>('/prompt/templates');
 };
 
-// 6. Image Edit
+// 7. Image Edit
 type EditImageResponse = {
     edit_id: number;
     result: string;
@@ -103,7 +111,7 @@ export const editImage = async (prompt: string, image: string): Promise<EditImag
   });
 };
 
-// 7. Image Edit by Template
+// 8. Image Edit by Template
 export const editImageByTemplate = async (templateId: number, image: string): Promise<EditImageResponse> => {
   return apiFetch<EditImageResponse>('/image-edits/by-template', {
     method: 'POST',
@@ -111,7 +119,7 @@ export const editImageByTemplate = async (templateId: number, image: string): Pr
   });
 };
 
-// 8. Get User Order History
+// 9. Get User Order History
 type OrderHistoryResponse = {
     orders: Order[];
     total: number;
@@ -120,7 +128,7 @@ export const getOrderHistory = async (): Promise<OrderHistoryResponse> => {
   return apiFetch<OrderHistoryResponse>('/users/orders');
 };
 
-// 9. Get User Image Edit History
+// 10. Get User Image Edit History
 type EditHistoryResponse = {
     edits: ImageEdit[];
     total: number;
@@ -129,7 +137,7 @@ export const getImageEditHistory = async (): Promise<EditHistoryResponse> => {
   return apiFetch<EditHistoryResponse>('/users/image-edits');
 };
 
-// 10. Change User Password
+// 11. Change User Password
 export const changePassword = async (oldPassword: string, newPassword: string): Promise<{ message: string }> => {
   return apiFetch<{ message: string }>('/users/change-password', {
     method: 'POST',
@@ -137,7 +145,7 @@ export const changePassword = async (oldPassword: string, newPassword: string): 
   });
 };
 
-// 11. Get Exchange Rates
+// 12. Get Exchange Rates
 type ExchangeRatesResponse = {
   baseCurrency: string;
   rates: Record<string, number>;
