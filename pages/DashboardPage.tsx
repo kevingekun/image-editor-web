@@ -16,6 +16,13 @@ const DashboardPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('editor');
+  
+  // Check if promotion is still active (until October 10, 2025)
+  const isPromotionActive = () => {
+    const endDate = new Date('2025-10-10T23:59:59');
+    const now = new Date();
+    return now <= endDate;
+  };
 
   useEffect(() => {
     if (!isAuthenticated && (activeTab === 'orders' || activeTab === 'edits' || activeTab === 'profile')) {
@@ -53,6 +60,32 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
+        {/* Promotion Banner */}
+        {isPromotionActive() && (
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-lg shadow-lg border-2 border-indigo-400">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+              <div className="text-center md:text-left">
+                <h2 className="text-xl font-bold flex items-center justify-center md:justify-start gap-2">
+                  <span className="text-2xl">🎉</span>
+                  Sign up and get 5 points free!
+                </h2>
+                <p className="text-indigo-100 text-sm mt-1">
+                  Limited time offer - Valid until October 10, 2025
+                </p>
+              </div>
+              {!isAuthenticated && (
+                <Button 
+                  onClick={() => navigate('/auth')} 
+                  variant="secondary"
+                  className="bg-white text-indigo-600 hover:bg-gray-100 font-semibold px-6 py-2 rounded-lg transition-colors"
+                >
+                  Sign Up Now
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+        
         <Card className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
                 {isAuthenticated && user ? (
