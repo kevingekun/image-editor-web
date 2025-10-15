@@ -2,7 +2,9 @@ import React from 'react';
 import { HashRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 // FIX: `useAuth` is imported from `./hooks/useAuth` not `./contexts/AuthContext`.
 import { AuthProvider } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { useAuth } from './hooks/useAuth';
+import { useLanguage } from './contexts/LanguageContext';
 import Header from './components/Header';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
@@ -12,6 +14,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 
 const AppRoutes: React.FC = () => {
     const { isAuthenticated } = useAuth();
+    const { t } = useLanguage();
 
     return(
         <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
@@ -27,12 +30,12 @@ const AppRoutes: React.FC = () => {
             </main>
             <footer className="text-center py-6">
                  <div className="flex justify-center items-center space-x-4 mb-2">
-                    <Link to="/about" className="text-sm text-gray-400 hover:text-indigo-400 transition-colors">About Us</Link>
+                    <Link to="/about" className="text-sm text-gray-400 hover:text-indigo-400 transition-colors">{t('footer.aboutUs')}</Link>
                     <span className="text-gray-600">|</span>
-                    <Link to="/privacy" className="text-sm text-gray-400 hover:text-indigo-400 transition-colors">Privacy Policy</Link>
+                    <Link to="/privacy" className="text-sm text-gray-400 hover:text-indigo-400 transition-colors">{t('footer.privacyPolicy')}</Link>
                 </div>
                 <p className="text-sm text-gray-500">
-                    Powered by <span className="font-semibold text-gray-400">Gemini Nano Banana</span>
+                    {t('footer.poweredBy')} <span className="font-semibold text-gray-400">Gemini Nano Banana</span>
                 </p>
             </footer>
         </div>
@@ -44,11 +47,13 @@ const AppRoutes: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-        <HashRouter>
-            <AppRoutes />
-        </HashRouter>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+          <HashRouter>
+              <AppRoutes />
+          </HashRouter>
+      </AuthProvider>
+    </LanguageProvider>
   );
 };
 

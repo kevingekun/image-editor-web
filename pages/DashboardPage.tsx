@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 // FIX: `useAuth` is imported from `../hooks/useAuth` not `../contexts/AuthContext`.
 import { useAuth } from '../hooks/useAuth';
+import { useLanguage } from '../contexts/LanguageContext';
 import ImageEditor from '../components/ImageEditor';
 import OrderHistory from '../components/OrderHistory';
 import EditHistory from '../components/EditHistory';
@@ -14,6 +15,7 @@ type Tab = 'editor' | 'orders' | 'edits' | 'profile';
 
 const DashboardPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('editor');
   
@@ -37,8 +39,8 @@ const DashboardPage: React.FC = () => {
           <div className="space-y-8">
             <TemplateEditor />
             <div className="border-t border-gray-700 pt-8">
-              <h2 className="text-3xl font-bold text-white mb-2">Custom Image Editing</h2>
-              <p className="text-gray-400 mb-6">Or, use your own prompt for more creative control.</p>
+              <h2 className="text-3xl font-bold text-white mb-2">{t('dashboard.customImageEditing')}</h2>
+              <p className="text-gray-400 mb-6">{t('dashboard.customPrompt')}</p>
               <ImageEditor />
             </div>
           </div>
@@ -67,10 +69,10 @@ const DashboardPage: React.FC = () => {
               <div className="text-center md:text-left">
                 <h2 className="text-xl font-bold flex items-center justify-center md:justify-start gap-2">
                   <span className="text-2xl">🎉</span>
-                  Sign up and get 5 points free!
+                  {t('dashboard.promotionTitle')}
                 </h2>
                 <p className="text-indigo-100 text-sm mt-1">
-                  Limited time offer - Valid until October 10, 2025
+                  {t('dashboard.promotionSubtitle')}
                 </p>
               </div>
               {!isAuthenticated && (
@@ -79,7 +81,7 @@ const DashboardPage: React.FC = () => {
                   variant="secondary"
                   className="bg-white text-indigo-600 hover:bg-gray-100 font-semibold px-6 py-2 rounded-lg transition-colors"
                 >
-                  Sign Up Now
+                  {t('dashboard.signUpNow')}
                 </Button>
               )}
             </div>
@@ -90,28 +92,28 @@ const DashboardPage: React.FC = () => {
             <div>
                 {isAuthenticated && user ? (
                     <>
-                        <h1 className="text-3xl font-bold text-white">Welcome, {user.username}!</h1>
-                        <p className="text-gray-300 mt-1">You have <span className="font-bold text-indigo-400 text-lg">{user.points}</span> points.</p>
+                        <h1 className="text-3xl font-bold text-white">{t('dashboard.welcome')}, {user.username}!</h1>
+                        <p className="text-gray-300 mt-1">{t('dashboard.youHave')} <span className="font-bold text-indigo-400 text-lg">{user.points}</span> {t('dashboard.points')}。</p>
                     </>
                 ) : (
                     <>
-                         <h1 className="text-3xl font-bold text-white">Welcome to the AI Image Editor</h1>
-                         <p className="text-gray-300 mt-1">Log in or sign up to get started.</p>
+                         <h1 className="text-3xl font-bold text-white">{t('dashboard.welcomeGuest')}</h1>
+                         <p className="text-gray-300 mt-1">{t('dashboard.loginPrompt')}</p>
                     </>
                 )}
             </div>
             <Button onClick={() => navigate('/payment')}>
-                Purchase Points
+                {t('dashboard.purchasePoints')}
             </Button>
         </Card>
 
       <div className="flex space-x-2 border-b border-gray-700 mb-6">
-          <button className={getTabClass('editor')} onClick={() => setActiveTab('editor')}>Image Editor</button>
+          <button className={getTabClass('editor')} onClick={() => setActiveTab('editor')}>{t('dashboard.imageEditor')}</button>
           {isAuthenticated && (
             <>
-                <button className={getTabClass('orders')} onClick={() => setActiveTab('orders')}>Order History</button>
-                <button className={getTabClass('edits')} onClick={() => setActiveTab('edits')}>Edit History</button>
-                <button className={getTabClass('profile')} onClick={() => setActiveTab('profile')}>Profile</button>
+                <button className={getTabClass('orders')} onClick={() => setActiveTab('orders')}>{t('dashboard.orderHistory')}</button>
+                <button className={getTabClass('edits')} onClick={() => setActiveTab('edits')}>{t('dashboard.editHistory')}</button>
+                <button className={getTabClass('profile')} onClick={() => setActiveTab('profile')}>{t('dashboard.profile')}</button>
             </>
           )}
       </div>

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useLanguage } from '../contexts/LanguageContext';
 import { editImageByTemplate } from '../services/api';
 import type { PromptTemplate } from '../types';
 import Button from './ui/Button';
@@ -36,6 +37,7 @@ const TemplateRow: React.FC<TemplateRowProps> = ({ template }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user, updateUserPoints, isAuthenticated } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,7 +74,7 @@ const TemplateRow: React.FC<TemplateRowProps> = ({ template }) => {
     if (!user) return; // Type guard
 
     if (user.points < 1) {
-      setError('Insufficient points. Please purchase more points to continue.');
+      setError(t('editor.insufficientPoints'));
       return;
     }
 
@@ -104,10 +106,10 @@ const TemplateRow: React.FC<TemplateRowProps> = ({ template }) => {
     <Card className="mb-6">
       <h3 className="text-xl font-bold text-white mb-4">{template.templateType}</h3>
       <div className="flex items-center gap-4 overflow-x-auto p-2">
-        <ImagePreview src={template.imgOriginal} alt={`Original example for ${template.templateType}`} label="Example (Original)" />
+        <ImagePreview src={template.imgOriginal} alt={`Original example for ${template.templateType}`} label={t('editor.exampleOriginal')} />
         
         <div className="flex flex-col items-center space-y-2 w-48 flex-shrink-0">
-            <h4 className="text-sm font-semibold text-gray-300 h-5">Example (Edited)</h4>
+            <h4 className="text-sm font-semibold text-gray-300 h-5">{t('editor.exampleEdited')}</h4>
             <div className="w-full h-48 bg-gray-700 rounded-lg overflow-hidden">
                 {editedImages.length === 1 ? (
                     <img src={editedImages[0]} alt="Edited example 1" className="w-full h-full object-cover" />
@@ -121,26 +123,26 @@ const TemplateRow: React.FC<TemplateRowProps> = ({ template }) => {
             </div>
         </div>
         
-        <ImagePreview src={userImagePreview} alt="Upload your photo" label="Your Photo" />
+        <ImagePreview src={userImagePreview} alt={t('editor.uploadYourPhoto')} label={t('editor.yourPhoto')} />
 
         <div className="flex flex-col items-center justify-center space-y-3 w-48 flex-shrink-0">
             <label htmlFor={`upload-${template.id}`} className="w-36 h-10 cursor-pointer bg-gray-600 hover:bg-gray-700 text-white text-sm font-bold py-2 px-4 rounded-md transition-colors duration-200 text-center flex items-center justify-center">
-                Choose File
+                {t('editor.chooseFile')}
             </label>
             <input id={`upload-${template.id}`} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
 
             <Button className="w-36 h-10" onClick={handleSubmit} isLoading={isLoading} disabled={!userImageFile || (isAuthenticated && user?.points === 0)}>
-                Edit (1 Point)
+                {t('editor.edit1Point')}
             </Button>
             
             <Button className="w-36 h-10" onClick={handlePreview} disabled={!editedUserImage || isLoading} variant="secondary">
-                Preview
+                {t('editor.preview')}
             </Button>
 
             {error && <p className="text-red-400 text-xs text-center mt-1">{error}</p>}
         </div>
 
-        <ImagePreview src={editedUserImage} alt="Your edited photo will appear here" label="Your Result" isLoading={isLoading} />
+        <ImagePreview src={editedUserImage} alt={t('editor.yourEditedPhoto')} label={t('editor.yourResult')} isLoading={isLoading} />
       </div>
     </Card>
   );

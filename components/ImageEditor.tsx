@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useLanguage } from '../contexts/LanguageContext';
 import { editImage as apiEditImage } from '../services/api';
 import Button from './ui/Button';
 import Card from './ui/Card';
@@ -16,6 +17,7 @@ const ImageEditor: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user, updateUserPoints, isAuthenticated } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,7 +56,7 @@ const ImageEditor: React.FC = () => {
     if (!user) return; // Type guard
 
     if (user.points < 1) {
-      setError('Insufficient points. Please purchase more points to continue.');
+      setError(t('editor.insufficientPoints'));
       return;
     }
 
@@ -81,25 +83,25 @@ const ImageEditor: React.FC = () => {
   };
 
   const getButtonText = () => {
-    if(isLoading) return 'Editing...';
-    if(!isAuthenticated) return 'Login to Edit Image';
-    return 'Edit Image (1 Point)';
+    if(isLoading) return t('editor.editing');
+    if(!isAuthenticated) return t('editor.loginToEdit');
+    return t('editor.editImage');
   }
 
   return (
     <Card>
-      <h2 className="text-2xl font-bold text-white mb-4">Image Editor</h2>
-      <p className="text-gray-400 mb-6">Use 1 point to edit an image with an AI prompt. <br/>Log in to start editing.</p>
+      <h2 className="text-2xl font-bold text-white mb-4">{t('editor.title')}</h2>
+      <p className="text-gray-400 mb-6">{t('editor.subtitle')} <br/>{t('editor.loginToStart')}</p>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Upload Image</label>
+          <label className="block text-sm font-medium text-gray-300 mb-1">{t('editor.uploadImage')}</label>
           <div className="flex items-center space-x-4">
             <label
               htmlFor="image-upload"
               className="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-2 px-4 rounded-md transition-colors duration-200 inline-block"
               role="button"
             >
-              Choose File
+              {t('editor.chooseFile')}
             </label>
             <input
               id="image-upload"
@@ -110,18 +112,18 @@ const ImageEditor: React.FC = () => {
               required
             />
             <span className="text-gray-400 text-sm">
-              {imageFile ? imageFile.name : 'No file selected'}
+              {imageFile ? imageFile.name : t('editor.noFileSelected')}
             </span>
           </div>
         </div>
 
         <Input
           id="prompt"
-          label="Editing Prompt"
+          label={t('editor.prompt')}
           type="text"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="e.g., make the sky blue, add a cat"
+          placeholder={t('editor.promptPlaceholder')}
           required
         />
 
@@ -134,25 +136,25 @@ const ImageEditor: React.FC = () => {
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h3 className="text-lg font-semibold text-white mb-2">Original</h3>
+          <h3 className="text-lg font-semibold text-white mb-2">{t('editor.original')}</h3>
           {originalImage ? (
             <img src={originalImage} alt="Original" className="rounded-lg w-full h-auto object-cover" />
           ) : (
             <div className="w-full h-64 bg-gray-700 rounded-lg flex items-center justify-center text-gray-400">
-              Your image will appear here
+              {t('editor.yourImageWillAppear')}
             </div>
           )}
         </div>
         <div>
            <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-white">Edited</h3>
+            <h3 className="text-lg font-semibold text-white">{t('editor.edited')}</h3>
             <Button
               onClick={handlePreview}
               disabled={!editedImage || isLoading}
               variant="secondary"
               className="py-1 px-3 text-sm"
             >
-              Preview
+              {t('editor.preview')}
             </Button>
           </div>
           {isLoading ? (
@@ -163,7 +165,7 @@ const ImageEditor: React.FC = () => {
             <img src={editedImage} alt="Edited" className="rounded-lg w-full h-auto object-cover" />
           ) : (
             <div className="w-full h-64 bg-gray-700 rounded-lg flex items-center justify-center text-gray-400">
-              AI generated result
+              {t('editor.aiGeneratedResult')}
             </div>
           )}
         </div>

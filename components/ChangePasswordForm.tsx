@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { changePassword as apiChangePassword } from '../services/api';
 import Button from './ui/Button';
 import Input from './ui/Input';
@@ -12,6 +13,7 @@ const ChangePasswordForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,12 +21,12 @@ const ChangePasswordForm: React.FC = () => {
     setSuccess(null);
 
     if (newPassword.length < 8) {
-      setError('New password must be at least 8 characters long.');
+      setError(t('common.passwordTooShort'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('New passwords do not match.');
+      setError(t('common.passwordsNotMatch'));
       return;
     }
 
@@ -46,12 +48,12 @@ const ChangePasswordForm: React.FC = () => {
   return (
     <Card className="max-w-lg mx-auto">
       <h2 className="text-2xl font-bold text-center text-white mb-6">
-        Change Password
+        {t('common.changePassword')}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           id="oldPassword"
-          label="Old Password"
+          label={t('common.oldPassword')}
           type="password"
           value={oldPassword}
           onChange={(e) => setOldPassword(e.target.value)}
@@ -60,7 +62,7 @@ const ChangePasswordForm: React.FC = () => {
         />
         <Input
           id="newPassword"
-          label="New Password"
+          label={t('common.newPassword')}
           type="password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
@@ -69,7 +71,7 @@ const ChangePasswordForm: React.FC = () => {
         />
         <Input
           id="confirmPassword"
-          label="Confirm New Password"
+          label={t('common.confirmNewPassword')}
           type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
@@ -79,7 +81,7 @@ const ChangePasswordForm: React.FC = () => {
         {error && <p className="text-red-400 text-sm">{error}</p>}
         {success && <p className="text-green-400 text-sm">{success}</p>}
         <Button type="submit" isLoading={isLoading} className="w-full">
-          Update Password
+          {t('common.updatePassword')}
         </Button>
       </form>
     </Card>

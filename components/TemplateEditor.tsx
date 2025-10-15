@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { getPromptTemplates } from '../services/api';
 import type { PromptTemplate } from '../types';
 import Spinner from './ui/Spinner';
@@ -9,6 +10,7 @@ const TemplateEditor: React.FC = () => {
   const [templates, setTemplates] = useState<PromptTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -37,12 +39,12 @@ const TemplateEditor: React.FC = () => {
 
   return (
     <div>
-      <h2 className="text-3xl font-bold text-white mb-2">Image Editing Templates</h2>
-      <p className="text-gray-400 mb-6">Choose a template, upload your photo, and see the magic happen. Each edit costs 1 point.</p>
+      <h2 className="text-3xl font-bold text-white mb-2">{t('editor.templateTitle')}</h2>
+      <p className="text-gray-400 mb-6">{t('editor.templateSubtitle')}</p>
       {templates.length > 0 ? (
         templates.map(template => <TemplateRow key={template.id} template={template} />)
       ) : (
-        <p className="text-gray-400">No templates available at the moment.</p>
+        <p className="text-gray-400">{t('editor.noTemplates')}</p>
       )}
     </div>
   );

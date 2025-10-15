@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useLanguage } from '../contexts/LanguageContext';
 import { createOrder, getExchangeRates } from '../services/api';
 import Button from './ui/Button';
 import Input from './ui/Input';
@@ -13,6 +14,7 @@ const PaymentComponent: React.FC<{ clientSecret: string; onPaymentSuccess: () =>
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,12 +33,12 @@ const PaymentComponent: React.FC<{ clientSecret: string; onPaymentSuccess: () =>
 
     if (error) {
       if (error.type === "card_error" || error.type === "validation_error") {
-        setMessage(error.message || 'An error occurred.');
+        setMessage(error.message || t('payment.cardError'));
       } else {
-        setMessage("An unexpected error occurred.");
+        setMessage(t('payment.unexpectedError'));
       }
     } else {
-        setMessage("Payment successful! Your points will be updated shortly.");
+        setMessage(t('payment.paymentSuccess'));
         onPaymentSuccess();
     }
     
@@ -47,7 +49,7 @@ const PaymentComponent: React.FC<{ clientSecret: string; onPaymentSuccess: () =>
     <form id="payment-form" onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement id="payment-element" />
       <Button disabled={isLoading || !stripe || !elements} id="submit" isLoading={isLoading} className="w-full">
-        Pay now
+        {t('payment.payNow')}
       </Button>
       {message && <div id="payment-message" className="text-center text-green-400 mt-4">{message}</div>}
     </form>
@@ -62,7 +64,30 @@ export const PurchasePointsForm: React.FC<{setClientSecret: (secret: string) => 
     const [currentRates, setCurrentRates] = useState<Record<string, number> | null>(null);
     const [lastUpdated, setLastUpdated] = useState<string | null>(null);
     const { isAuthenticated } = useAuth();
+    const { t, language } = useLanguage();
     const navigate = useNavigate();
+    
+    // 根据语言获取货币名称
+    const getCurrencyName = (curr: Currency) => {
+        // 人民币始终显示中文
+        if (curr.code === 'CNY') {
+            return curr.name; // '人民币'
+        }
+        // 其他货币根据当前语言决定
+        if (language === 'zh') {
+            // 中文环境下的翻译
+            const zhNames: Record<string, string> = {
+                'USD': '美元',
+                'EUR': '欧元',
+                'JPY': '日元',
+                'GBP': '英镑',
+                'HKD': '港币'
+            };
+            return zhNames[curr.code] || curr.name;
+        }
+        // 英文环境下，使用英文名称
+        return curr.name;
+    };
 
     // 获取汇率数据
     useEffect(() => {
@@ -111,7 +136,7 @@ export const PurchasePointsForm: React.FC<{setClientSecret: (secret: string) => 
         }
 
         if(isNaN(numericAmount) || numericAmount < minimumAmount) {
-            setError(`Amount must be at least ${selectedCurrency.symbol}${minimumAmount} (equivalent to $5 USD).`);
+            setError(`${t('payment.minAmountError')} ${selectedCurrency.symbol}${minimumAmount} (equivalent to $5 USD).`);
             return;
         }
         setError(null);
@@ -129,22 +154,22 @@ export const PurchasePointsForm: React.FC<{setClientSecret: (secret: string) => 
     
     return (
         <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white">Purchase Points</h3>
+            <h3 className="text-xl font-bold text-white">{t('payment.purchasePoints')}</h3>
             <p className="text-gray-400">
-                Rate: $1 USD = 2 Points. Minimum charge: $5 USD equivalent.
+                {t('payment.rateDescription')}
             </p>
             
             {/* 汇率更新时间 */}
             {lastUpdated && (
                 <p className="text-xs text-gray-500">
-                    Exchange rates updated: {new Date(lastUpdated).toLocaleString()}
+                    {t('payment.exchangeRatesUpdated')}: {new Date(lastUpdated).toLocaleString()}
                 </p>
             )}
             
             {/* 货币选择 */}
             <div>
                 <label htmlFor="currency" className="block text-sm font-medium text-gray-300 mb-1">
-                    Currency
+                    {t('payment.currency')}
                 </label>
                 <select 
                     id="currency"
@@ -154,7 +179,7 @@ export const PurchasePointsForm: React.FC<{setClientSecret: (secret: string) => 
                 >
                     {SUPPORTED_CURRENCIES.map((curr) => (
                         <option key={curr.code} value={curr.code}>
-                            {curr.symbol} {curr.name} ({curr.code})
+                            {curr.symbol} {getCurrencyName(curr)} ({curr.code})
                         </option>
                     ))}
                 </select>
@@ -162,20 +187,20 @@ export const PurchasePointsForm: React.FC<{setClientSecret: (secret: string) => 
             
             <div>
                 <Input 
-                    label={`Amount (${selectedCurrency.code})`}
+                    label={`${t('payment.amount')} (${selectedCurrency.code})`}
                     type="text"
                     inputMode="numeric"
                     id="amount"
                     value={amount}
                     onChange={e => setAmount(e.target.value.replace(/[^0-9]/g, ''))}
-                    placeholder={`Enter amount (min: ${minimumAmount})`}
+                    placeholder={`${t('payment.enterAmount')} (${t('payment.minimum').toLowerCase()}: ${minimumAmount})`}
                 />
                 <p className="text-sm text-gray-400 mt-1">
-                    Minimum: {selectedCurrency.symbol}{minimumAmount} • 
-                    You will get: <span className="font-bold text-indigo-400">{pointsToEarn}</span> points
+                    {t('payment.minimum')}: {selectedCurrency.symbol}{minimumAmount} • 
+                    {t('payment.youWillGet')}: <span className="font-bold text-indigo-400">{pointsToEarn}</span> {t('payment.points').toLowerCase()}
                     {numericAmount > 0 && currentRates && (
                         <span className="text-gray-500 ml-2">
-                            (Rate: {selectedCurrency.symbol}1 = {(2 / (currentRates[currency] || 1)).toFixed(4)} points)
+                            ({t('payment.rate')}: {selectedCurrency.symbol}1 = {(2 / (currentRates[currency] || 1)).toFixed(4)} {t('payment.points').toLowerCase()})
                         </span>
                     )}
                 </p>
@@ -183,7 +208,7 @@ export const PurchasePointsForm: React.FC<{setClientSecret: (secret: string) => 
             
              {error && <p className="text-red-400 text-sm">{error}</p>}
             <Button onClick={handleCreateOrder} isLoading={isLoading} className="w-full">
-                {isAuthenticated ? `Pay ${selectedCurrency.symbol}${numericAmount || minimumAmount}` : 'Login to Purchase'}
+                {isAuthenticated ? `${t('payment.pay')} ${selectedCurrency.symbol}${numericAmount || minimumAmount}` : t('payment.loginToPurchase')}
             </Button>
         </div>
     )

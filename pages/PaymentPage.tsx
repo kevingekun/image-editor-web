@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 import PaymentComponent, { PurchasePointsForm } from '../components/PaymentComponent';
 import { STRIPE_PUBLISHABLE_KEY } from '../constants';
 import Card from '../components/ui/Card';
@@ -14,6 +15,7 @@ const PaymentPage: React.FC = () => {
   const [clientSecret, setClientSecret] = useState('');
   const navigate = useNavigate();
   const { refreshUserPoints } = useAuth();
+  const { language } = useLanguage();
 
   const handlePaymentSuccess = () => {
       // Refresh points and navigate back to dashboard after a short delay
@@ -25,7 +27,7 @@ const PaymentPage: React.FC = () => {
 
   const options: StripeElementsOptions = {
     clientSecret,
-    locale: 'en', // Force Stripe Elements to use English
+    locale: language === 'zh' ? 'zh' : 'en', // Use Chinese or English based on selected language
     appearance: {
         theme: 'night',
         labels: 'floating',

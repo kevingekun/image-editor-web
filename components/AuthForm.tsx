@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useLanguage } from '../contexts/LanguageContext';
 import { sendEmailCode } from '../services/api';
 import Button from './ui/Button';
 import Input from './ui/Input';
@@ -35,6 +36,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileError, setTurnstileError] = useState<string | null>(null);
   const { login, register } = useAuth();
+  const { t } = useLanguage();
   const turnstileWidgetId = useRef<string | null>(null);
   const turnstileContainerRef = useRef<HTMLDivElement>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
@@ -87,7 +89,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
           callback: (token: string) => setTurnstileToken(token),
           'expired-callback': () => {
             setTurnstileToken(null);
-            setTurnstileError('Security check expired. Please try again.');
+            setTurnstileError(t('auth.securityCheckExpired'));
           },
         });
         if (!turnstileWidgetId.current) {
@@ -128,13 +130,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
 
   const handleSendEmailCode = async () => {
     if (!email) {
-      setError('Please enter your email address first.');
+      setError(t('auth.pleaseEnterEmail'));
       return;
     }
     
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address.');
+      setError(t('auth.pleaseEnterValidEmail'));
       return;
     }
     
@@ -146,7 +148,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
       setCountdown(60); // 60秒倒计时
       setError(null);
     } catch (err: any) {
-      setError(err.message || 'Failed to send verification code.');
+      setError(err.message || t('auth.failedToSendCode'));
     } finally {
       setIsSendingCode(false);
     }
@@ -159,35 +161,35 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
     setIsLoading(true);
 
     if (!turnstileToken) {
-      setError('Please complete the security check.');
+      setError(t('auth.pleaseCompleteSecurityCheck'));
       setIsLoading(false);
       return;
     }
 
     if (isRegister) {
       if (!/^[a-zA-Z0-9]+$/.test(username)) {
-        setError('Username must contain only letters and numbers.');
+        setError(t('auth.usernameLettersNumbers'));
         setIsLoading(false);
         return;
       }
       if (password.length < 8) {
-        setError('Password must be at least 8 characters long.');
+        setError(t('auth.passwordMinLength'));
         setIsLoading(false);
         return;
       }
       if (!email) {
-        setError('Please enter your email address.');
+        setError(t('auth.pleaseEnterEmail'));
         setIsLoading(false);
         return;
       }
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        setError('Please enter a valid email address.');
+        setError(t('auth.pleaseEnterValidEmail'));
         setIsLoading(false);
         return;
       }
       if (!emailCode) {
-        setError('Please enter the verification code.');
+        setError(t('auth.pleaseEnterVerificationCode'));
         setIsLoading(false);
         return;
       }
@@ -200,14 +202,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
         await login(username, password, turnstileToken);
       }
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred.');
+      setError(err.message || t('auth.unexpectedError'));
       if (turnstileWidgetId.current && window.turnstile) {
         try {
           window.turnstile.reset(turnstileWidgetId.current);
           setTurnstileToken(null);
         } catch (resetErr) {
           console.error('Turnstile reset error:', resetErr);
-          setTurnstileError('Failed to reset security check. Please refresh the page.');
+          setTurnstileError(t('auth.failedToResetSecurityCheck'));
         }
       }
     } finally {
@@ -218,12 +220,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
   return (
     <Card className="max-w-md mx-auto">
       <h2 className="text-2xl font-bold text-center text-white mb-6">
-        {isRegister ? 'Create Account' : 'Login'}
+        {isRegister ? t('auth.register') : t('auth.login')}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           id="username"
-          label="Username"
+          label={t('auth.username')}
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
@@ -231,7 +233,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
         />
         <Input
           id="password"
-          label="Password"
+          label={t('auth.password')}
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -241,7 +243,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
           <>
             <Input
               id="email"
-              label="Email"
+              label={t('auth.email')}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -252,11 +254,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
                 <div className="flex-1">
                   <Input
                     id="emailCode"
-                    label="Verification Code"
+                    label={t('auth.verificationCode')}
                     type="text"
                     value={emailCode}
                     onChange={(e) => setEmailCode(e.target.value)}
-                    placeholder="Enter verification code"
+                    placeholder={t('auth.enterVerificationCode')}
                     required
                   />
                 </div>
@@ -267,7 +269,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
                   isLoading={isSendingCode}
                   className="h-12 px-4 text-sm whitespace-nowrap mb-0"
                 >
-                  {countdown > 0 ? `${countdown}s` : 'Send Code'}
+                  {countdown > 0 ? `${countdown}s` : t('auth.sendCode')}
                 </Button>
               </div>
             </div>
@@ -282,7 +284,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
         </div>
         {error && <p className="text-red-400 text-sm">{error}</p>}
         <Button type="submit" isLoading={isLoading} className="w-full">
-          {isRegister ? 'Register' : 'Login'}
+          {isRegister ? t('auth.registerButton') : t('auth.loginButton')}
         </Button>
       </form>
     </Card>
