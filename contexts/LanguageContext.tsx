@@ -22,11 +22,28 @@ interface LanguageProviderProps {
   children: React.ReactNode;
 }
 
+// 检测用户浏览器语言
+const detectUserLanguage = (): Language => {
+  // 首先检查 localStorage 中是否有保存的语言偏好
+  const saved = localStorage.getItem('language');
+  if (saved === 'zh' || saved === 'en') {
+    return saved;
+  }
+  
+  // 获取浏览器语言设置
+  const browserLang = navigator.language || (navigator as any).userLanguage;
+  
+  // 检测是否为中文（包括简体、繁体、香港、台湾等）
+  if (browserLang.toLowerCase().startsWith('zh')) {
+    return 'zh';
+  }
+  
+  // 默认使用英文
+  return 'en';
+};
+
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem('language');
-    return (saved === 'zh' || saved === 'en') ? saved : 'en';
-  });
+  const [language, setLanguageState] = useState<Language>(() => detectUserLanguage());
 
   useEffect(() => {
     localStorage.setItem('language', language);

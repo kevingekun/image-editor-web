@@ -11,6 +11,7 @@ View your app in AI Studio: https://ai.studio/apps/drive/1xyOTsjEcILujmFunCN6IhY
 ## Features
 
 - 🌐 **Multi-language Support**: Switch between English and Chinese (中文) seamlessly
+  - **Auto language detection** based on browser settings (new!)
   - Language switcher in the header (top right corner)
   - Persistent language preference (saved in localStorage)
   - Complete translations for all pages and components
