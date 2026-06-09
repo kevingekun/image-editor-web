@@ -62,19 +62,42 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
     // Load Turnstile script with timeout
     const loadTurnstileScript = () => {
       return new Promise<void>((resolve, reject) => {
-        if (window.turnstile) {
-          resolve();
+        // 1. 已加载直接返回
+        if (window.turnstile) return resolve();
+
+        // 2. 防止重复插入脚本标签
+        if (document.querySelector('script[src*="turnstile/v0/api.js"]')) {
+          // 如果脚本已存在但 window.turnstile 还没就绪，可以设置轮询等待
+          const check = setInterval(() => {
+            if (window.turnstile) {
+              clearInterval(check);
+              resolve();
+            }
+          }, 100);
           return;
         }
+
         const script = document.createElement('script');
         script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
         script.async = true;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load Turnstile script'));
-        document.head.appendChild(script);
+        script.defer = true;
 
-        // 10-second timeout
-        setTimeout(() => reject(new Error('Turnstile script load timed out')), 10000);
+        // 超时控制
+        const timeout = setTimeout(() => {
+          script.remove(); // 超时后移除节点
+          reject(new Error('Turnstile script load timed out'));
+        }, 10000);
+
+        script.onload = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
+        script.onerror = () => {
+          clearTimeout(timeout);
+          reject(new Error('Failed to load Turnstile script'));
+        };
+
+        document.head.appendChild(script);
       });
     };
 
@@ -133,16 +156,16 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister }) => {
       setError(t('auth.pleaseEnterEmail'));
       return;
     }
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError(t('auth.pleaseEnterValidEmail'));
       return;
     }
-    
+
     setError(null);
     setIsSendingCode(true);
-    
+
     try {
       await sendEmailCode(email, 'REGISTER');
       setCountdown(60); // 60秒倒计时
